@@ -66,8 +66,16 @@ const logout = async (req, res) => {
   res.status(200).json({ message: "Logged out successfully" })
 }
 
+const getMe = async (req, res) => {
+  res.status(200).json({
+    message: "Authenticated",
+    userId: req.user.userId
+  })
+}
+
 module.exports = {
   register,
   login,
-  logout
+  logout,
+  getMe
 }
