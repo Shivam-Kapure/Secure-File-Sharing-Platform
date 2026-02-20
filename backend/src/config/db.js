@@ -1,11 +1,12 @@
 const { Pool } = require("pg")
 
+// Enable SSL only for cloud-hosted databases (e.g. Neon)
+const isSSL = process.env.DATABASE_URL?.includes("sslmode=require")
+
 // Create a new PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ...(isSSL && { ssl: { rejectUnauthorized: false } })
 })
 
 // Test the connection immediately when server starts

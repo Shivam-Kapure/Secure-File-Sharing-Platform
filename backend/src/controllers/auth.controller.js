@@ -1,5 +1,13 @@
 const { registerUser, loginUser } = require("../services/auth.service")
 
+// Cookie options for JWT
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  maxAge: 60 * 60 * 1000 // 1 hour (matches JWT expiry)
+}
+
 const register = async (req, res, next) => {
   try {
     const { email, password } = req.body
@@ -8,9 +16,19 @@ const register = async (req, res, next) => {
       return res.status(400).json({ error: "Email and password required" })
     }
 
-    const user = await registerUser(email, password)
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" })
+    }
 
-    res.status(201).json(user)
+    const { user, token } = await registerUser(email, password)
+
+    // Set JWT in HTTP-only cookie
+    res.cookie("token", token, COOKIE_OPTIONS)
+
+    res.status(201).json({
+      message: "Registration successful",
+      user
+    })
   } catch (error) {
     next(error)
   }
@@ -24,15 +42,32 @@ const login = async (req, res, next) => {
       return res.status(400).json({ error: "Email and password required" })
     }
 
-    const data = await loginUser(email, password)
+    const { user, token } = await loginUser(email, password)
 
-    res.status(200).json(data)
+    // Set JWT in HTTP-only cookie
+    res.cookie("token", token, COOKIE_OPTIONS)
+
+    res.status(200).json({
+      message: "Login successful",
+      user
+    })
   } catch (error) {
     next(error)
   }
 }
 
+const logout = async (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict"
+  })
+
+  res.status(200).json({ message: "Logged out successfully" })
+}
+
 module.exports = {
   register,
-  login
+  login,
+  logout
 }

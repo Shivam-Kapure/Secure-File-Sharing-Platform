@@ -25,7 +25,16 @@ const registerUser = async (email, password) => {
     [email, passwordHash]
   )
 
-  return result.rows[0]
+  const user = result.rows[0]
+
+  // Generate JWT so user is logged in immediately after registration
+  const token = jwt.sign(
+    { userId: user.id },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  )
+
+  return { user, token }
 }
 
 // Login user
@@ -61,6 +70,7 @@ const loginUser = async (email, password) => {
     }
   }
 }
+
 
 module.exports = {
   registerUser,
