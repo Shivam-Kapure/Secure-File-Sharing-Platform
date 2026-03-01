@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const authRoutes = require("./routes/auth.routes")
+const fileRoutes = require("./routes/file.routes")
+const shareRoutes = require("./routes/share.routes")
 
 
 
@@ -23,6 +25,17 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 
 app.use("/auth", authRoutes)
+
+app.use("/files", fileRoutes)
+
+app.use("/share", shareRoutes)
+
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        message: "Secure File Sharing Backend is running."
+    })
+});
 
 app.get("/health", (req, res) => {
     res.status(200).json({
