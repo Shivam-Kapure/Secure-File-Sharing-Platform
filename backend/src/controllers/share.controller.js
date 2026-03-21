@@ -4,7 +4,9 @@ const {
   revokeShareLink
 } = require("../services/share.service")
 
-// Create share link (authenticated)
+const { generateDownloadURL } = require("../services/storage.service")
+
+// Create share link
 const create = async (req, res, next) => {
   try {
     const { id: fileId } = req.params
@@ -42,6 +44,8 @@ const accessByToken = async (req, res, next) => {
 
     const share = await getFileByToken(token)
 
+    const downloadURL = await generateDownloadURL(share.storage_key)
+
     res.status(200).json({
       message: "Share link valid",
       file: {
@@ -49,15 +53,20 @@ const accessByToken = async (req, res, next) => {
         mime_type: share.mime_type,
         size: share.size
       },
-      permission: share.permission
+      permission: share.permission,
+      downloadURL
     })
+
+    // 🔥 OPTIONAL (better UX)
+    // return res.redirect(downloadURL)
+
   } catch (error) {
     next(error)
   }
 }
 
 
-// Revoke share link (authenticated)
+// Revoke share link
 const revoke = async (req, res, next) => {
   try {
     const { id: shareId } = req.params
@@ -69,7 +78,6 @@ const revoke = async (req, res, next) => {
     next(error)
   }
 }
-
 
 module.exports = {
   create,

@@ -9,7 +9,6 @@ const generateToken = () => {
 
 // Create share link
 const createShareLink = async (ownerId, fileId, permission, expiresAt) => {
-  // Ensure file belongs to user
   const fileCheck = await pool.query(
     "SELECT id FROM files WHERE id = $1 AND owner_id = $2",
     [fileId, ownerId]
@@ -34,11 +33,11 @@ const createShareLink = async (ownerId, fileId, permission, expiresAt) => {
 }
 
 
-// Get file by share token (public access)
+// Get file by share token
 const getFileByToken = async (token) => {
   const result = await pool.query(
     `
-    SELECT fs.*, f.filename, f.mime_type, f.size
+    SELECT fs.*, f.filename, f.mime_type, f.size, f.storage_key
     FROM file_shares fs
     JOIN files f ON fs.file_id = f.id
     WHERE fs.share_token = $1
@@ -85,7 +84,6 @@ const revokeShareLink = async (ownerId, shareId) => {
 
   return { message: "Share link revoked successfully" }
 }
-
 
 module.exports = {
   createShareLink,
