@@ -148,7 +148,11 @@ function FilesPage() {
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null
       });
 
-      setShareLink(buildShareUrl(data.share.share_token));
+      if (permission === "download" && data.cloudflareLink) {
+        setShareLink(data.cloudflareLink);
+      } else {
+        setShareLink(buildShareUrl(data.share.share_token));
+      }
     } catch (err) {
       setActionError(err.message);
     } finally {

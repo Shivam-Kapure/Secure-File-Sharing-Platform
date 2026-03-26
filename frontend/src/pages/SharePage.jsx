@@ -20,6 +20,13 @@ function SharePage() {
       try {
         const data = await api.getShare(token);
         if (!mounted) return;
+
+        // Auto-redirect for download permission to provide a direct Cloudflare file link experience
+        if (data.permission === "download" && data.downloadURL) {
+          window.location.replace(data.downloadURL);
+          return;
+        }
+
         setPayload(data);
       } catch (err) {
         if (!mounted) return;

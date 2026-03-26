@@ -17,13 +17,20 @@ const generateUploadURL = async (key, contentType) => {
 
 
 // Generate signed download URL
-const generateDownloadURL = async (key) => {
-  const command = new GetObjectCommand({
+const generateDownloadURL = async (key, filename, expiresIn = 60 * 5) => {
+  const params = {
     Bucket: process.env.R2_BUCKET_NAME,
     Key: key
-  })
+  }
 
-  const url = await getSignedUrl(s3, command, { expiresIn: 60 * 5 }) // 5 min
+  // Force actual download if filename is provided
+  if (filename) {
+    params.ResponseContentDisposition = `attachment; filename="${filename}"`
+  }
+
+  const command = new GetObjectCommand(params)
+
+  const url = await getSignedUrl(s3, command, { expiresIn }) // dynamically typed expiration
 
   return url
 }

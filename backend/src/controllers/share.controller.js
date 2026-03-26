@@ -27,9 +27,24 @@ const create = async (req, res, next) => {
       expires_at
     )
 
+    let cloudflareLink = undefined;
+    if (permission === 'download') {
+      const { pool } = require("../config/db");
+      const result = await pool.query("SELECT storage_key, filename FROM files WHERE id = $1", [fileId]);
+      if (result.rows.length > 0) {
+        let expiresInSeconds = 60 * 60 * 24 * 7; // up to 7 days
+        if (expires_at) {
+           const timeDiff = Math.floor((new Date(expires_at).getTime() - Date.now()) / 1000);
+           expiresInSeconds = Math.max(1, Math.min(expiresInSeconds, timeDiff));
+        }
+        cloudflareLink = await generateDownloadURL(result.rows[0].storage_key, result.rows[0].filename, expiresInSeconds);
+      }
+    }
+
     res.status(201).json({
       message: "Share link created successfully",
-      share
+      share,
+      cloudflareLink
     })
   } catch (error) {
     next(error)
@@ -44,7 +59,11 @@ const accessByToken = async (req, res, next) => {
 
     const share = await getFileByToken(token)
 
-    const downloadURL = await generateDownloadURL(share.storage_key)
+    const isDownload = share.permission === "download"
+    const downloadURL = await generateDownloadURL(
+      share.storage_key,
+      isDownload ? share.filename : undefined
+    )
 
     res.status(200).json({
       message: "Share link valid",

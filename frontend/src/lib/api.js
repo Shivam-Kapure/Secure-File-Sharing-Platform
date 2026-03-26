@@ -38,4 +38,3 @@ export const api = {
 export function buildShareUrl(token) {
   return `${window.location.origin}/share/${token}`;
 }
-

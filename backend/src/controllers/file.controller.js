@@ -108,7 +108,7 @@ const getDownloadURL = async (req, res, next) => {
 
     const file = result.rows[0]
 
-    const downloadURL = await generateDownloadURL(file.storage_key)
+    const downloadURL = await generateDownloadURL(file.storage_key, file.filename)
 
     res.status(200).json({
       message: "Download URL generated",
